@@ -22,12 +22,24 @@ env:
   - KVER=5.9
   - KVER=master
 
+services:
+  - docker
+
 matrix:
   allow_failures:
     - env: KVER=master
   include:
     - env: StyleCheck
       script: ./ci/run_style_check
+    - env:
+        - CentOS_8_Test="" EL8_MODULE_VERSION=1.8.0
+      before_install:
+        - echo 'DOCKER_OPTS="-H tcp://127.0.0.1:2375 -H unix:///var/run/docker.sock -s devicemapper"' | sudo tee /etc/default/docker > /dev/null
+        - sudo service docker restart
+        - sleep 5
+        - sudo docker pull centos:8
+      script:
+        - sudo -E docker run --rm=true --env EL8_MODULE_VERSION=1.8.0 -v `pwd`:/base-src:rw -t centos:8 /bin/bash -c "/base-src/ci/run_centos8_test ${EL8_MODULE_VERSION}"
 
 addons:
   apt:

@@ -1,0 +1,20 @@
+#! /usr/bin/env bash
+
+dnf install -y gcc make epel-release kernel-devel
+
+dnf install -y libdrm-devel dkms
+
+cd /base-src
+
+chown `id -u`:`id -g` -R .
+
+mkdir /usr/src/evdi-"$1"
+
+cp module/* /usr/src/evdi-"$1"
+
+#Test Kbuild
+make
+
+#Test DKMS
+dkms add -m evdi -v "$1"
+dkms build -m evdi -v "$1"
